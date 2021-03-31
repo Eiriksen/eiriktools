@@ -85,3 +85,91 @@ mutate_when <- function(data, ...) {
   data
 }
 
+
+
+#' Converts messy names and ID's to tidy clean ones.
+#'
+#' For sorting out a vector with long and complicated identifiers or row names, where the true ID of a row is hidden in a string.\cr
+#' E.g: Make "dirty" ID's like "A0006_3911_BT-F1_GTCGTCTA_run20190930N" turn into "clean" ID's like 3991_BT
+#' @param vector A vector of "dirty" IDs
+#' @param identifier ID's need to be formated with a number and following identifier, e.g "34_individuals2019" where "_individuals2019" is the identifier. Any entries not matching this format will be removed.
+#' @param identifier_left Wether the identifier is on the left hand (T) or right-hand (R) side of the number
+#' @param numLength if you want leading zeroes, use this parameter to specify the length of the number, e.g "8" for 00000342
+#' @param prefix if you want a prefix in the new cleaned ID. Ex: "individuals2019_" will give you "individuals2019_0034". If not specified, the old identifier will be used instead. Set to NA if you only want the number.
+#' @param remove_NA if you want to remove any entries that don't follow your pattern (otherwise, they'll turn to NA)
+#' @export
+clean_ID = function(vector,identifier="", identifier_left=F, numLength=4, prefix, remove_NA=F,numeric=F) {
+  require(tidyverse)
+  require(stringr)
+
+  # SET THE REGULAR EXPRESSION
+  if (!identifier_left) regExpr = paste("[0-9]{1,50}",identifier,sep="")
+  else                  regExpr = paste(identifier,"[0-9]{1,50}",sep="")
+
+  # Extract the ID's from the dirty ID's
+  ID_dirty = vector
+  ID_clean = ID_dirty %>% str_extract(regExpr)
+
+  # Remove the old identifier (for now)
+  ID_clean = ID_clean %>% sub(identifier,"",.)
+
+  # Remove NA values
+  if (remove_NA) ID_clean = ID_clean[!is.na(ID_clean)]
+
+  # Add leading zeroes
+  if (numLength!=0) ID_clean[!is.na(ID_clean)] = ID_clean[!is.na(ID_clean)] %>% as.numeric() %>% sprintf(paste("%0",numLength,"d",sep=""),.)
+
+  # Make the ID completely numeric
+  if (numeric) ID_clean = as.numeric(ID_clean)
+
+  # Add the new prefix
+  if (exists("prefix")){
+    if (is.na(prefix))       return(ID_clean)
+    else                     ID_clean[!is.na(ID_clean)] = paste(prefix, ID_clean[!is.na(ID_clean)], sep="")
+  }
+  else if (identifier_left)  ID_clean[!is.na(ID_clean)] = paste(ID_clean[!is.na(ID_clean)], identifier, sep="")
+  else if (!identifier_left) ID_clean[!is.na(ID_clean)] = paste(identifier, ID_clean[!is.na(ID_clean)], sep="")
+
+  return(ID_clean)
+}
+
+
+#' In a dataframe, converts messy names and ID's to tidy clean ones.
+#'
+#' For sorting out column with long and complicated identifiers or row names, where the true ID of a row is hidden in a string.\cr
+#' E.g: Make "dirty" ID's like "A0006_3911_BT-F1_GTCGTCTA_run20190930N" turn into "clean" ID's like 3991_BT
+#' @param df The data frame
+#' @param column The name of a column containing dirty IDs
+#' @param identifier ID's need to be formated with a number and following identifier, e.g "34_individuals2019" where "_individuals2019" is the identifier. Any entries not matching this format will be removed.
+#' @param identifier_left Wether the identifier is on the left hand (T) or right-hand (R) side of the number
+#' @param numLength if you want leading zeroes, use this parameter to specify the length of the number, e.g "8" for 00000342
+#' @param prefix if you want a prefix in the new cleaned ID. Ex: "individuals2019_" will give you "individuals2019_0034"
+#' @param remove_NA if you want to remove any rows that don't follow your pattern (otherwise, they'll turn to NA). Default is True.
+#' @export
+clean_ID_df = function(df, column_name="ID", identifier="", identifier_left=F, numLength=F, prefix="", remove_NA=T, keep_name=F, numeric=F){
+  require(tidyverse)
+  require(stringr)
+
+  # Ectract the dirty ID's
+  ID_dirty = unlist(df[column_name])
+
+  # Clean the ID
+  ID_clean = clean_ID(ID_dirty, identifier, identifier_left, numLength, prefix,numeric=numeric)
+
+  # Insert the cleaned ID's into the column
+  df[column_name] = ID_clean
+
+  # Remove NA values
+  if (remove_NA) df = df %>% na_removeRow(column_name)
+
+  # Rename the old ID column
+  # Check what name to use
+  if (keep_name == F) column_name_new = "ID"
+  else if (keep_name == T) column_name_new = column_name
+  else column_name_new = keep_name
+  # Rename the column to "ID"
+  df = df %>% rename(!! column_name_new := !! column_name)
+
+  return(df)
+}
+
