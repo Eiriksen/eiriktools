@@ -173,3 +173,65 @@ clean_ID_df = function(df, column_name="ID", identifier="", identifier_left=F, n
   return(df)
 }
 
+
+#' @export
+duplicates_cut = function(df, by, na.keep=T)
+{
+  if (na.keep)
+  {
+    keep = df %>% filter(is.na(.data[[by]]))
+    df   = df %>% filter(!is.na(.data[[by]]))
+  }
+  else
+  {
+    keep = data.frame()
+  }
+
+  df <- df %>% group_by(.data[[by]]) %>% summarise_all(funs(mergeDuplicates_last))
+
+  df <- rbind(df,keep)
+
+  df
+
+}
+
+#' @export
+duplicates_find = function(df, by, na.omit=T)
+{
+  if (na.omit)
+  {
+    df[!is.na(df[[by]]) & df[[by]] %>% duplicated(),][[by]]
+  }
+  else
+  {
+    df[df[[by]] %>% duplicated(),][[by]]
+  }
+
+}
+
+#' @export
+duplicates_cut_adv = function(df, lim_coeff=15)
+{
+  duplicates = df %>% duplicates_find(by="pit")
+  for (dupl in duplicates){
+    print(glue("Pit: {dupl}"))
+    weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight")
+    print(glue("Weights {paste(weights, collapse='  ')}"))
+    tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank")
+    print(glue("Tanks: {paste(tanks, collapse='  ')}"))
+    mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder")
+    print(glue("Mords: {paste(mords, collapse='  ')}"))
+
+    coeff = sd(weights) / mean(weights) * 100
+    if (is.na(coeff)) next
+
+    if (length(unique(tanks))==1 & coeff < 15)
+    {
+      # delete all entries from the dataset except the first
+      mords_delete = mords[2:length(mords)]
+      print(glue("Deleted {paste(mords_delete,collapse=', ')} in tank {unique(tanks)}"))
+      df = df %>% filter(!measOrder %in% mords_delete)
+    }
+  }
+  return(df)
+}
