@@ -209,6 +209,20 @@ duplicates_find = function(df, by, na.omit=T)
 
 }
 
+
+#' Removes rows with NA in a given column
+#'
+#' Removes NA rows (in a given column) from a dataset
+#' @export
+na_removeRow = function(dataset,columns){
+  for (column in columns)
+  {
+    dataset = dataset[which(!is.na(dataset[column])),]
+  }
+  return(dataset)
+}
+
+
 #' @export
 duplicates_cut_adv = function(df, lim_coeff=15)
 {
