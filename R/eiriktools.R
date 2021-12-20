@@ -14,6 +14,30 @@ intextract <- function(string){
 }
 
 
+#' Stateswitch
+#' @export
+stateSwitch = function(x) {
+  if (sum(x == T) == 0) return(x)
+  if (sum(x != T) == 0) return(x)
+
+  first_true <- which.max(x)
+  output <- c(rep(F,first_true-1),rep(T,length(x)-first_true+1))
+  output
+}
+
+#' Stateswitch_last
+#' @export
+stateSwitch_last = function(x) {
+  if (sum(x == T) == 0) return(rep(F,length(x)))
+  if (sum(x != T) == 0) return(rep(T,length(x)))
+
+  last_false <- tail(which(x==FALSE),1)
+  output <- c(rep(F,last_false),rep(T,length(x)-last_false))
+  output
+}
+
+
+
 #' @title Standard error of the mean
 #' @description  Ignores NA values
 #' @export
