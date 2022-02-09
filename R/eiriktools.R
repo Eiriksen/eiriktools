@@ -259,27 +259,27 @@ funkyTranspose = function(df){
 
 
 #' @export
-duplicates_cut_adv = function(df, lim_coeff=15)
+duplicates_cut_adv = function(df, lim_coeff=15,silent=F)
 {
   require(glue)
   duplicates = df %>% duplicates_find(by="pit")
   for (dupl in duplicates){
-    print(glue::glue("Pit: {dupl}"))
+    if(silent==T) print(glue::glue("Pit: {dupl}"))
     weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight")
-    print(glue::glue("Weights {paste(weights, collapse='  ')}"))
+    if(silent==T) print(glue::glue("Weights {paste(weights, collapse='  ')}"))
     tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank")
-    print(glue::glue("Tanks: {paste(tanks, collapse='  ')}"))
+    if(silent==T) print(glue::glue("Tanks: {paste(tanks, collapse='  ')}"))
     mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder")
-    print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
+    if(silent==T) print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
 
-    coeff = sd(weights) / mean(weights) * 100
+    coeff = sd(weights) / mean(weights,na.rm=T) * 100
     if (is.na(coeff)) next
 
     if (length(unique(tanks))==1 & coeff < 15)
     {
       # delete all entries from the dataset except the first
       mords_delete = mords[2:length(mords)]
-      print(glue::glue("Deleted {paste(mords_delete,collapse=', ')} in tank {unique(tanks)}"))
+      if(silent==T) print(glue::glue("Deleted {paste(mords_delete,collapse=', ')} in tank {unique(tanks)}"))
       df = df %>% filter(!measOrder %in% mords_delete)
     }
   }
