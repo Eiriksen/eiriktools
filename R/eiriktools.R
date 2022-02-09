@@ -261,6 +261,7 @@ funkyTranspose = function(df){
 #' @export
 duplicates_cut_adv = function(df, lim_coeff=15)
 {
+  require(glue)
   duplicates = df %>% duplicates_find(by="pit")
   for (dupl in duplicates){
     print(glue("Pit: {dupl}"))
