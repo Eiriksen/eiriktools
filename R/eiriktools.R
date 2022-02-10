@@ -259,18 +259,18 @@ funkyTranspose = function(df){
 
 
 #' @export
-duplicates_cut_adv = function(df, lim_coeff=15,silent=F)
+duplicates_cut_adv = function(df, lim_coeff=15, silent=F)
 {
   require(glue)
   duplicates = df %>% duplicates_find(by="pit")
   for (dupl in duplicates){
-    if(silent==T) print(glue::glue("Pit: {dupl}"))
+    if(silent==F) print(glue::glue("Pit: {dupl}"))
     weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight")
-    if(silent==T) print(glue::glue("Weights {paste(weights, collapse='  ')}"))
+    if(silent==F) print(glue::glue("Weights {paste(weights, collapse='  ')}"))
     tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank")
-    if(silent==T) print(glue::glue("Tanks: {paste(tanks, collapse='  ')}"))
+    if(silent==F) print(glue::glue("Tanks: {paste(tanks, collapse='  ')}"))
     mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder")
-    if(silent==T) print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
+    if(silent==F) print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
 
     coeff = sd(weights) / mean(weights,na.rm=T) * 100
     if (is.na(coeff)) next
@@ -284,4 +284,25 @@ duplicates_cut_adv = function(df, lim_coeff=15,silent=F)
     }
   }
   return(df)
+}
+
+#' @export
+read_delim_multi <- function(list_filepaths,rbind=T,col_types){
+
+  if (rbind==F) output <- list()
+  else output <- data.frame()
+
+  for( filepath in list_filepaths){
+    message(glue::glue("Reading {filepath}"))
+    filename <- tools::file_path_sans_ext(basename(filepath))
+    if (rbind==T){
+      output <- dplyr::bind_rows(output,readr::read_delim(filepath,col_types = col_types))
+    }
+    else {
+      output[[filepath]] <- readr::read_delim(filepath,col_types = col_types)
+    }
+  }
+
+  return(output)
+
 }
