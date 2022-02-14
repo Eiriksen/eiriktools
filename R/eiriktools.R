@@ -262,28 +262,44 @@ funkyTranspose = function(df){
 duplicates_cut_adv = function(df, lim_coeff=15, silent=F)
 {
   require(glue)
+
+  .message <- function(msg){
+    if(silent==F) message(glue::glue(msg))
+  }
+
   duplicates = df %>% duplicates_find(by="pit")
   for (dupl in duplicates){
-    if(silent==F) print(glue::glue("Pit: {dupl}"))
+    .message("")
+    .message("Pit: {dupl}")
     weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight")
-    if(silent==F) print(glue::glue("Weights {paste(weights, collapse='  ')}"))
+    .message("Weights {paste(weights, collapse='  ')}")
     tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank")
-    if(silent==F) print(glue::glue("Tanks: {paste(tanks, collapse='  ')}"))
+    .message("Tanks: {paste(tanks, collapse='  ')}")
     mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder")
-    if(silent==F) print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
+    .message("MeasOrd.: {paste(mords, collapse='  ')}")
 
     coeff = sd(weights) / mean(weights,na.rm=T) * 100
+    .message("Coefficient of var for weight is {coeff}")
 
-    if (is.na(coeff)) next()
-    if ("" %in% dupl |"missing" %in% dupl | "no pit" %in% dupl) next()
+    if (is.na(coeff)) {
+      next()
+      .message("Do nothing")
+    }
+    if ("" %in% dupl |"missing" %in% dupl | "no pit" %in% dupl) {
+      next()
+      .message("Do nothing")
+    }
 
     if (length(unique(tanks))==1 & coeff < 15)
     {
       # delete all entries from the dataset except the first
       mords_delete = mords[2:length(mords)]
-      if(silent==T) print(glue::glue("Deleted {paste(mords_delete,collapse=', ')} in tank {unique(tanks)}"))
+      .message("Deleted {paste(mords_delete,collapse=', ')} in tank {unique(tanks)}")
       df = df %>% filter(!measOrder %in% mords_delete)
+    } else {
+      .message("Do nothing")
     }
+
   }
   return(df)
 }
