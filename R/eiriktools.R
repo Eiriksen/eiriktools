@@ -273,7 +273,9 @@ duplicates_cut_adv = function(df, lim_coeff=15, silent=F)
     if(silent==F) print(glue::glue("Mords: {paste(mords, collapse='  ')}"))
 
     coeff = sd(weights) / mean(weights,na.rm=T) * 100
-    if (is.na(coeff)) next
+
+    if (is.na(coeff)) next()
+    if ("" %in% dupl |"missing" %in% dupl | "no pit" %in% dupl) next()
 
     if (length(unique(tanks))==1 & coeff < 15)
     {
