@@ -249,6 +249,7 @@ na_removeRow = function(dataset,columns){
 #' funkyTranspose
 #' https://stackoverflow.com/questions/6645524/what-is-the-best-way-to-transpose-a-data-frame-in-r-and-to-set-one-of-the-column
 #' Credits: mortonjt and nzcoops
+#' @export
 funkyTranspose = function(df){
   # Transpose table YOU WANT
   df_t <- t(df[,2:ncol(df)])
