@@ -175,10 +175,10 @@ clean_ID_df = function(df, column_name="ID", identifier="", identifier_left=F, n
   require(stringr)
 
   # Ectract the dirty ID's
-  ID_dirty = unlist(df[column_name])
+  ID_dirty <- unlist(df[[column_name]])
 
   # Clean the ID
-  ID_clean = clean_ID(ID_dirty, identifier, identifier_left, numLength, prefix,numeric=numeric)
+  ID_clean <- clean_ID(ID_dirty, identifier, identifier_left, numLength, prefix,numeric=numeric)
 
   # Insert the cleaned ID's into the column
   df[column_name] = ID_clean
@@ -272,14 +272,14 @@ duplicates_cut_adv = function(df, lim_coeff=15, silent=F)
   for (dupl in duplicates){
     .message("")
     .message("Pit: {dupl}")
-    weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight")
+    weights = df[df$pit==dupl,]["weight"] %>% na_removeRow("weight") %>% unlist()
     .message("Weights {paste(weights, collapse='  ')}")
-    tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank")
+    tanks   = df[df$pit==dupl,]["tank"]   %>% na_removeRow("tank") %>% unlist()
     .message("Tanks: {paste(tanks, collapse='  ')}")
-    mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder")
+    mords=df[df$pit==dupl,]["measOrder"] %>% na_removeRow("measOrder") %>% unlist()
     .message("MeasOrd.: {paste(mords, collapse='  ')}")
 
-    coeff = sd(weights) / mean(weights,na.rm=T) * 100
+    coeff = sd(weights,na.rm=T) / mean(weights,na.rm=T) * 100
     .message("Coefficient of var for weight is {coeff}")
 
     if (is.na(coeff)) {
