@@ -306,7 +306,7 @@ duplicates_cut_adv = function(df, lim_coeff=15, silent=F)
 }
 
 #' @export
-read_delim_multi <- function(list_filepaths,rbind=T,col_types){
+read_delim_multi <- function(list_filepaths,rbind=T,col_types,guess_max=50000){
 
   if (rbind==F) output <- list()
   else output <- data.frame()
@@ -315,10 +315,10 @@ read_delim_multi <- function(list_filepaths,rbind=T,col_types){
     message(glue::glue("Reading {filepath}"))
     filename <- tools::file_path_sans_ext(basename(filepath))
     if (rbind==T){
-      output <- dplyr::bind_rows(output,readr::read_delim(filepath,col_types = col_types))
+      output <- dplyr::bind_rows(output,readr::read_delim(filepath,col_types = col_types,guess_max = guess_max))
     }
     else {
-      output[[filepath]] <- readr::read_delim(filepath,col_types = col_types)
+      output[[filepath]] <- readr::read_delim(filepath,col_types = col_types,guess_max = guess_max)
     }
   }
 
